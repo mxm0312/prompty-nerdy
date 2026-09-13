@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "prompty-nerdy",
+  "description": "A linter for prompts. Checks LLM labeling instructions for determinism, readability and efficiency.",
+  "owner": {
+    "name": "Maxim Perekhodkin",
+    "url": "https://github.com/mxm0312"
+  },
+  "plugins": [
+    {
+      "name": "prompty-nerdy",
+      "description": "Lints prompts that produce decisions. Nine rules, every finding proved by an input that breaks it.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

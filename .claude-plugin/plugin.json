@@ -1,0 +1,9 @@
+{
+  "name": "prompty-nerdy",
+  "version": "0.1.0",
+  "description": "A linter for prompts. Checks LLM labeling instructions for determinism, readability and efficiency.",
+  "author": {
+    "name": "Maxim Perekhodkin",
+    "url": "https://github.com/mxm0312"
+  }
+}
