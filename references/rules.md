@@ -7,6 +7,11 @@ A rule fires only when you can write down an input that breaks it. No rule
 counts things. If a check can only be expressed as "more than N of something",
 it is a style opinion and it is not in this file.
 
+Exactly one direction of one rule cannot meet that bar — the inert half of
+`technique-fits-task`, which takes an experiment rather than an input. It is
+called out where it appears, and it reports as a warning that says so. Nothing
+else in this file is allowed the same move.
+
 | Rule | Principle |
 |---|---|
 | [`no-undecided-input`](#no-undecided-input) | determinism |
@@ -19,15 +24,53 @@ it is a style opinion and it is not in this file.
 | [`reason-before-verdict`](#reason-before-verdict) | efficiency |
 | [`technique-fits-task`](#technique-fits-task) | efficiency |
 
+## Which rule fires
+
+Several rules describe the same failure from different angles: a contradiction,
+two overlapping categories and an undefined term all produce an input the
+prompt does not decide. One input produces one finding, reported under the most
+specific rule that names its cause:
+
+1. `no-contradiction` — two instructions cannot both be satisfied
+2. `examples-match-rules` — a demonstration disagrees with the rules
+3. `disjoint-categories` — two categories fit and nothing says which wins
+4. `decision-terms-defined` — one term carries two readings
+5. `output-contract` — the decision is made, the shape it comes back in is not
+6. `no-undecided-input` — nothing above names the cause
+
+`no-undecided-input` is the catch-all, not the default. When a more specific
+rule explains why the input is undecided, report it there: the fix is different
+in each case, and that is the whole point of naming the rule.
+
+The other three rules describe different failures and do not compete with this
+list. `human-executable` is about a reader who cannot proceed, `reason-before-verdict`
+about the order work is generated in, `technique-fits-task` about work the
+prompt asks for or fails to ask for.
+
 ## Severity
 
-- **error** — an input exists for which the prompt does not determine the
-  answer. Two correct readings give two different answers, or no reading gives
-  one at all.
-- **warning** — the answer is determined, but a careful reader could
-  reasonably arrive at a different one.
+- **error** — for some input the prompt does not determine the answer, or it
+  determines it by a mechanism that cannot work as written.
+- **warning** — the answer is determined, but a careful reader could reasonably
+  arrive at a different one.
 
-Nothing else is a finding. If you cannot name the input, you do not have one.
+The second clause of `error` exists for exactly one rule: reasoning generated
+after the verdict is paid for in full and cannot inform anything.
+
+| Rule | error | warning |
+|---|---|---|
+| `no-undecided-input` | always | — |
+| `no-contradiction` | always | — |
+| `examples-match-rules` | always — two specifications, and the demonstration wins | — |
+| `decision-terms-defined` | the two readings split an input the data can produce | they split only a constructed one |
+| `disjoint-categories` | always | — |
+| `output-contract` | a parser would have to guess the shape | the shape is pinned, but a value is enumerated only in an earlier section |
+| `human-executable` | the reader cannot produce an answer at all | the reader proceeds, but could reasonably land elsewhere |
+| `reason-before-verdict` | always — the reasoning cannot inform the answer, by construction | — |
+| `technique-fits-task` | the task requires work the prompt never asks for | an instruction changes no answer |
+
+Nothing else is a finding. If you cannot name the input, you do not have one —
+with one exception, named in `technique-fits-task` below and nowhere else.
 
 ---
 
@@ -262,6 +305,22 @@ is an under-specified prompt, and adding reasoning is the fix.
 changing? Role descriptions, encouragement, restated rules, emphasis. Not
 because they cost tokens, but because they occupy the model's attention and
 sit between the reader and the four lines that decide the answer.
+
+**The inert direction is the one no single input can prove.** Showing that a
+line changes nothing takes the same prompt run with and without it over a set
+of rows, not one constructed input. So this half of the rule reports as a
+warning and says what it is:
+
+```
+warning  technique-fits-task  L12-18
+         Not proven by an input. Removing the role description changes no
+         answer I can construct, but that is an argument, not a result.
+         Fix: run both versions over 30 real rows; delete if they agree.
+```
+
+If you are not prepared to write that, do not report it. The missing-technique
+direction is unaffected: there an input exists and it goes in the report as
+usual.
 
 **Fix.** Add the technique the task needs. Remove the instructions that change
 nothing. Which techniques suit which tasks: [techniques.md](techniques.md).

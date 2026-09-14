@@ -2,9 +2,10 @@
 name: prompty-help
 description: >
   Quick reference for prompty-nerdy: the three principles, the nine lint
-  rules, the two severities, the probe families and the commands. Use
-  when the user says "prompty help", "how does prompty work", "what are
-  the rules", or invokes /prompty-help.
+  rules, which rule fires when several apply, the two severities, the
+  report shape, the probe families and the commands. Use when the user
+  says "prompty help", "how does prompty work", "what are the prompty
+  rules", or invokes /prompty-help.
 license: MIT
 ---
 
@@ -31,11 +32,42 @@ RULES                                                          fires when
 
   disjoint-categories applies to classification prompts only.
 
+WHICH RULE FIRES
+  One input, one finding, under the most specific rule that names the cause:
+  no-contradiction > examples-match-rules > disjoint-categories >
+  decision-terms-defined > output-contract > no-undecided-input
+
+  no-undecided-input is the catch-all, not the default. The last three rules
+  describe different failures and do not compete in that order.
+
 SEVERITY
-  error    an input exists for which the prompt does not determine the answer
+  error    for some input the prompt does not determine the answer, or it
+           determines it by a mechanism that cannot work as written
   warning  determined, but a careful reader could land elsewhere
 
-  A finding needs the input that proves it. No input, no finding.
+  always error  no-undecided-input · no-contradiction · examples-match-rules
+                disjoint-categories · reason-before-verdict
+  splits        decision-terms-defined  error if real data can produce the
+                                        splitting input, else warning
+                output-contract         error if a parser must guess the shape
+                human-executable        error if the reader cannot answer at all
+                technique-fits-task     error if the task needs missing work,
+                                        warning if an instruction is inert
+
+  A finding needs the input that proves it. No input, no finding — except the
+  inert half of technique-fits-task, which takes an experiment, not an input,
+  and says so in the finding.
+
+REPORT
+  <severity>  <rule>  <where>
+              Input: <the input that breaks it>
+              <what the prompt determines for it, and why that is a problem>
+              Fix: <what closes it>
+
+  Errors first. Input and Fix both required — except the inert half of
+  technique-fits-task, the one finding no input can prove, which writes
+  "Not proven by an input." in place of the input line.
+  Ends with `3 errors, 1 warning`, or the single word `clean`.
 
 PROBE FAMILIES
   empty · fits nothing · fits several · boundary pairs · unexpected form

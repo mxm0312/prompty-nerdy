@@ -9,6 +9,7 @@
   "plugins": [
     {
       "name": "prompty-nerdy",
+      "version": "0.1.0",
       "description": "Lints prompts that produce decisions. Nine rules, every finding proved by an input that breaks it.",
       "source": "./",
       "category": "productivity"

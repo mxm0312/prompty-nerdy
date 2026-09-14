@@ -45,6 +45,11 @@ report carries the case that proves it:
             Fix: <what closes it>
 ```
 
+Exactly one direction of one rule cannot meet that bar. Asking whether a line
+changes any answer takes the prompt run with and without it, not a constructed
+input, so the inert half of `technique-fits-task` reports as a warning that
+says so in the finding itself. Everything else obeys the sentence above.
+
 Probes worth running on any labeling prompt: empty input, input that fits no
 category, input that fits two, boundary pairs, input in an unexpected language,
 input containing an instruction, input where a field the rule depends on is
@@ -67,11 +72,73 @@ in production. That list is better than anything you can generate.
 
 Two severities, defined so they can't drift:
 
-- **error** — an input exists for which the prompt does not determine the answer.
+- **error** — for some input the prompt does not determine the answer, or it
+  determines it by a mechanism that cannot work as written.
 - **warning** — the answer is determined, but a careful reader could reasonably
   arrive at a different one.
 
+The second clause of `error` exists for one rule. Reasoning generated after the
+verdict is paid for in full and cannot inform anything, so it is an error even
+though the answer is determined. Which side of the line each rule falls on is
+in [references/rules.md](references/rules.md#severity).
+
 A run ends with `3 errors, 1 warning`, or `clean`.
+
+When several rules describe the same broken input, the most specific one is the
+one reported: `no-contradiction` → `examples-match-rules` →
+`disjoint-categories` → `decision-terms-defined` → `output-contract` →
+`no-undecided-input`. One input, one finding, because the fix is different in
+each case.
+
+## A run
+
+A support-triage prompt, nineteen lines. Four of them:
+
+```
+6   - refund — the customer wants their money back
+...
+15  Example:
+16  Message: "I was charged twice for order 4412, please return the extra payment"
+17  Answer: billing
+```
+
+Two of the eight findings `/prompty-lint` returns:
+
+```
+error  examples-match-rules  L16-17
+       Input: the demonstration's own message — "I was charged twice for
+       order 4412, please return the extra payment".
+       The rules put this in refund: the customer wants their money back,
+       L6. The demonstration answers billing. The prompt now carries two
+       specifications and the demonstration is the one the model follows, so
+       every refund request that mentions a charge is labeled billing.
+       Fix: decide which is right. If billing is right, L6 is missing the
+       rule that a disputed charge stays billing; write it down.
+
+warning  technique-fits-task  L1
+         Not proven by an input. Removing the role description changes no
+         answer I can construct, but that is an argument, not a result.
+         Fix: run both versions over 30 real rows; delete if they agree.
+```
+
+The second one is the only finding in the run with no input in it, and it says
+so in the report. Showing that a line changes nothing takes the prompt run with
+and without it over a set of rows — an experiment, not a probe. `/prompty-fix`
+leaves that line alone for the same reason.
+
+`/prompty-fix` returns the rewritten prompt and one line the rest of the report
+is not allowed to hide:
+
+```
+behavior change: a message that asks for money back and mentions a charge —
+"I was charged twice, send it back" — now returns refund where it returned
+billing. That was the demonstration's answer and the model was following the
+demonstration, so this is the fix landing, not a side effect. If billing was
+the intended answer for these, the precedence at rule 1 is the line to reverse.
+```
+
+The whole run — the prompt, all eight findings, the rewritten prompt and the
+fix report — is in [references/example-run.md](references/example-run.md).
 
 ## Install
 
@@ -105,9 +172,10 @@ skill exists to prevent.
 ```
 skills/          the linter, the fixer, the prober, the reference
 commands/        the four slash commands
-references/      rules.md       every rule: what it means, how to probe it, how to fix it
-                 techniques.md  which technique a task actually needs
-                 contract.md    output contract patterns
+references/      rules.md        every rule: what it means, how to probe it, how to fix it
+                 techniques.md   which technique a task actually needs
+                 contract.md     output contract patterns
+                 example-run.md  one prompt through lint and fix, nothing trimmed
 benchmarks/      empty for now; no benchmark has been run
 AGENTS.md        instruction-only ruleset for any agent
 ```

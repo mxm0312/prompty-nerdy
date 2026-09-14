@@ -5,5 +5,15 @@
   "author": {
     "name": "Maxim Perekhodkin",
     "url": "https://github.com/mxm0312"
-  }
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/mxm0312/prompty-nerdy",
+  "repository": "https://github.com/mxm0312/prompty-nerdy",
+  "keywords": [
+    "prompt-engineering",
+    "linter",
+    "classification",
+    "evals",
+    "llm"
+  ]
 }
